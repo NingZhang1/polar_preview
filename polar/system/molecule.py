@@ -20,7 +20,7 @@ def get_dip_op(mol, include_nuc=True):
         coords  = mol.atom_coords()
         nuc_dip = np.einsum('i, ix -> x', charges, coords)
         ovlp = mol.intor_symmetric('int1e_ovlp')
-        dip_op = ao_dip - np.einsum('x, pq -> xpq', nuc_dip / float(mol.nelectron), ovlp)
+        dip_op = ao_dip - np.einsum('x, pq -> xpq', nuc_dip / float(mol.nelectron), ovlp) # ??? why / float(mol.nelectron) ? 
     else:
         dip_op = ao_dip
     return dip_op
@@ -65,16 +65,18 @@ def get_pf_ham(mol, w0, lc, pol_axis, nmode=1, lo_method='meta-lowdin',
     C = lo.orth_ao(mol, method=lo_method)
 
     # integral in the AO basis
-    dip_op = get_dip_op(mol)
-    dip_op_lo = np.einsum('pq, pm, qn -> mn', dip_op[pol_axis], C, C, optimize=True)
+
+    dip_op = get_dip_op(mol)  # include nuc by default 
+    
+    # dip_op_lo = np.einsum('pq, pm, qn -> mn', dip_op[pol_axis], C, C, optimize=True)
 
     if isinstance(pol_axis, Iterable):
         h_c = lc * np.einsum("Apq, A -> pq", dip_op, pol_axis)
     else:
         h_c = lc * dip_op[pol_axis]
 
-    w_p = np.asarray([w0 * (im*2+1) for im in range(nmode)])
-    h_ep = np.einsum("x, pq -> xpq", -np.sqrt(w_p * 0.5), h_c)
+    w_p = np.asarray([w0 * (im*2+1) for im in range(nmode)])  # ? 研究倍频 ? 
+    h_ep = np.einsum("x, pq -> xpq", -np.sqrt(w_p * 0.5), h_c) # bilinear term 
 
     h0 = mol.energy_nuc()
     ovlp = hf.get_ovlp(mol)
@@ -93,8 +95,8 @@ def get_pf_ham(mol, w0, lc, pol_axis, nmode=1, lo_method='meta-lowdin',
     # self-energy
     if self_energy is not None:
         h_c = np.einsum('pq, pm, qn -> mn', h_c, C, C, optimize=True)
-        hcore += 0.5 * np.einsum('pq, qs -> ps', h_c, h_c) * len(w_p)
-        eri   += np.einsum('pq, rs -> pqrs', h_c, h_c) * len(w_p)
+        hcore += 0.5 * np.einsum('pq, qs -> ps', h_c, h_c) * len(w_p) # do not use quadropole， +  还是 - ? 
+        eri   += np.einsum('pq, rs -> pqrs', h_c, h_c) * len(w_p) # 这个考虑的例子，频率是倍频，但是偏振方向和coupling coeff 是一样的
 
         if self_energy == 'quadrupole':
             # compute the corection term

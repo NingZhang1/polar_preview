@@ -9,7 +9,7 @@ import numpy as np
 import scipy.linalg
 import scipy.sparse.linalg
 from scipy.linalg import qr
-from scipy.sparse.linalg.matfuncs import is_pydata_spmatrix
+# from scipy.sparse.sputils import is_pydata_spmatrix
 from scipy.sparse.linalg import aslinearoperator
 try:
     from scipy.sparse.linalg.interface import IdentityOperator
@@ -24,8 +24,8 @@ def _exact_inf_norm(A):
     # A compatibility function which should eventually disappear.
     if scipy.sparse.isspmatrix(A):
         return max(abs(A).sum(axis=1).flat)
-    elif is_pydata_spmatrix(A):
-        return max(abs(A).sum(axis=1))
+    # elif is_pydata_spmatrix(A):
+    #     return max(abs(A).sum(axis=1))
     else:
         return np.linalg.norm(A, np.inf)
 
@@ -34,18 +34,19 @@ def _exact_1_norm(A):
     # A compatibility function which should eventually disappear.
     if scipy.sparse.isspmatrix(A):
         return max(abs(A).sum(axis=0).flat)
-    elif is_pydata_spmatrix(A):
-        return max(abs(A).sum(axis=0))
+    # elif is_pydata_spmatrix(A):
+    #     return max(abs(A).sum(axis=0))
     else:
         return np.linalg.norm(A, 1)
 
 
 def _trace(A):
     # A compatibility function which should eventually disappear.
-    if is_pydata_spmatrix(A):
-        return A.to_scipy_sparse().trace()
-    else:
-        return A.trace()
+    # if is_pydata_spmatrix(A):
+    #     return A.to_scipy_sparse().trace()
+    # else:
+    #     return A.trace()
+    return A.trace()
 
 
 def traceest(A, m3, seed=None):
