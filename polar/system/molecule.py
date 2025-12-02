@@ -31,6 +31,7 @@ def get_quadp_op(mol):
     quadp = mol.intor('int1e_rr').reshape(3, 3, nao, nao)
     return quadp
 
+# NOTE: 假定了所有波长和分子的 coupling lc 是一样的 
 
 def get_pf_ham(mol, w0, lc, pol_axis, nmode=1, lo_method='meta-lowdin',
                self_energy='dipole'):
@@ -95,8 +96,8 @@ def get_pf_ham(mol, w0, lc, pol_axis, nmode=1, lo_method='meta-lowdin',
     # self-energy
     if self_energy is not None:
         h_c = np.einsum('pq, pm, qn -> mn', h_c, C, C, optimize=True)
-        hcore += 0.5 * np.einsum('pq, qs -> ps', h_c, h_c) * len(w_p) # do not use quadropole， +  还是 - ? 
-        eri   += np.einsum('pq, rs -> pqrs', h_c, h_c) * len(w_p) # 这个考虑的例子，频率是倍频，但是偏振方向和coupling coeff 是一样的
+        hcore += 0.5 * np.einsum('pq, qs -> ps', h_c, h_c) * len(w_p) # do not use quadropole， + 号 ！ 
+        eri   += np.einsum('pq, rs -> pqrs', h_c, h_c) * len(w_p)     # 这个考虑的例子，频率是倍频，但是偏振方向和coupling coeff 是一样的
 
         if self_energy == 'quadrupole':
             # compute the corection term
@@ -113,7 +114,7 @@ def get_pf_ham(mol, w0, lc, pol_axis, nmode=1, lo_method='meta-lowdin',
 
             dip_lo = np.einsum('pq, pm, qn -> mn', dip_elec, C, C, optimize=True) * lc
             qup_lo = np.einsum('pq, pm, qn -> mn', qup_elec, C, C, optimize=True) * lc**2
-            dh1 = (qup_lo - np.einsum('pq, qs -> ps', dip_lo, dip_lo)) * (len(w_p) * 0.5)
+            dh1 = (qup_lo - np.einsum('pq, qs -> ps', dip_lo, dip_lo)) * (len(w_p) * 0.5)  # eqn 10
             hcore += dh1
 
     # mean-field in LO basis

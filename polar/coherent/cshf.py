@@ -117,7 +117,7 @@ class RCSHF(scf.rhf.RHF):
             vhf = vj - vk * 0.5
             vhf += np.asarray(vhf_last)
 
-        v1_zs = get_v1_zs(zs, self.h_ep)
+        v1_zs = get_v1_zs(zs, self.h_ep) # eqn 18
         vhf += v1_zs
         return vhf
 
@@ -133,9 +133,9 @@ class RCSHF(scf.rhf.RHF):
 
         zs = self.zs
         v1_zs = get_v1_zs(zs, self.h_ep)
-        e_eph = np.einsum("ij, ji -> ", v1_zs, dm).real
+        e_eph = np.einsum("ij, ji -> ", v1_zs, dm).real # eqn 18 第二项算到了这里 !
         e_coul -= e_eph * 0.5
-        e_ph = get_v0_zs(zs, self.w_p)
+        e_ph = get_v0_zs(zs, self.w_p) # eqn 17
 
         self.scf_summary["e1"] = e1
         self.scf_summary["e2"] = e_coul
